@@ -1,0 +1,8 @@
+* Needs...
+** User-driven step selection
+*** No transition predicate necessary
+*** List available next steps and move to user's selection
+** Rule in/out various steps based on known facts
+*** This is where we use transition predicates
+*** We can call them filters or something instead
+*** Rule-in filters (whitelist) take precedence
