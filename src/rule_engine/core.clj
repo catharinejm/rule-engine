@@ -1,7 +1,34 @@
 (ns rule-engine.core)
 
-(defrecord Transition [predicate next-step])
-(defrecord Step [name transitions required-values])
+(defmulti make-step
+  (fn [x & _] (type x)))
+(defmethod make-step :step
+  [step] step)
+(defmethod make-step String
+  [name & [transitions required-values]]
+  (make-step {:name name
+              :transitions transitions
+              :required-values required-values}))
+(defmethod make-step clojure.lang.IPersistentMap
+  [smap]
+  (with-meta
+    (merge {:name nil :transitions nil :required-values nil} smap)
+    {:type :step}))
+
+(defmulti make-transition
+  (fn [x & _] (type x)))
+(prefer-method make-transition clojure.lang.IPersistentMap clojure.lang.IFn)
+(defmethod make-transition :transition
+  [transition] transition)
+(defmethod make-transition clojure.lang.IPersistentMap
+  [tmap]
+  (with-meta
+    (merge {:prediate nil :next-step nil} tmap)
+    {:type :transition}))
+(defmethod make-transition clojure.lang.IFn
+  [predicate next-step]
+  (make-transition {:predicate predicate
+                    :next-step next-step}))
 
 (def patient (atom {}))
 (def coercers
@@ -18,12 +45,12 @@
                             {} new-map)]
     (swap! patient #(merge % coerced-map))))
 
-(def root-step (Step. "Root"
-                      [(Transition. #(> (:age @patient) 42)
-                                    (map->Step {:name "Is old"}))
-                       (Transition. (constantly true)
-                                    (map->Step {:name "Is young"}))]
-                      #{:age}))
+(def root-step (make-step "Root"
+                          [(make-transition #(> (:age @patient) 42)
+                                            (make-step {:name "Is old"}))
+                           (make-transition (constantly true)
+                                            (make-step {:name "Is young"}))]
+                          #{:age}))
 
 (defn children [step]
   (map :next-step (:transitions step)))
