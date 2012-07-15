@@ -18,12 +18,12 @@
                             {} new-map)]
     (swap! patient #(merge % coerced-map))))
 
-(def root-step (Step. "Root"
-                      [(Transition. #(> (:age @patient) 42)
-                                    (map->Step {:name "Is old"}))
-                       (Transition. (constantly true)
-                                    (map->Step {:name "Is young"}))]
-                      #{:age}))
+(def root-step (->Step "Root"
+                       [(->Transition #(> (:age @patient) 42)
+                                      (map->Step {:name "Is old"}))
+                        (->Transition (constantly true)
+                                      (map->Step {:name "Is young"}))]
+                       #{:age}))
 
 (defn children [step]
   (map :next-step (:transitions step)))
