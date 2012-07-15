@@ -26,7 +26,7 @@
                       #{:age}))
 
 (defn children [step]
-  (into [] (map :next-step (:transitions step))))
+  (map :next-step (:transitions step)))
 
 (defn final? [step] (empty? (:transitions step)))
 
@@ -51,13 +51,15 @@
                       (assoc map key (read-line)))
                     {} attrs)))
 
-(defn run! []
-  (loop [step root-step]
-    (if (final? step)
-      step
-      (let [nxt (next-step step)]
-        (when (contains? nxt :missing-attributes)
-          (get-attributes! (:missing-attributes nxt)))
-        (recur nxt)))))
+(defn run!
+  ([] (run! root-step))
+  ([step]
+     (loop [step step]
+       (if (final? step)
+         step
+         (let [nxt (next-step step)]
+           (when (contains? nxt :missing-attributes)
+             (get-attributes! (:missing-attributes nxt)))
+           (recur nxt))))))
 
 (defn -main [] (run!))
